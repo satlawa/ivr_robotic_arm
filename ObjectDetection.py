@@ -8,12 +8,20 @@ class ObjectDetection(object):
 
     def filter_orange(self, img):
         # filter orange color
-        mask = cv2.inRange(img, (80, 100, 120), (110, 190, 210))
-        # make kernel
-        kernel = np.ones((5, 5), np.uint8)
-        # dilate with kernel
-        mask = cv2.dilate(mask, kernel, iterations=3)
+        mask = cv2.inRange(img, (75, 100, 120), (110, 190, 215))
         return mask
+
+    def dilate(self, img, kernel_size=3):
+        # create kernel
+        kernel = np.ones((kernel_size, kernel_size), np.uint8)
+        # dilate with kernel
+        img = cv2.dilate(img, kernel, iterations=2)
+        return img
+
+    def opening(self, img, kernel_size=3):
+        kernel = np.ones((kernel_size, kernel_size),np.uint8)
+        img = cv2.morphologyEx(img,cv2.MORPH_OPEN,kernel,iterations = 1)
+        return img
 
     def find_boundries(self, img):
         # find contours
