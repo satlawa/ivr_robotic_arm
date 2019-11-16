@@ -10,6 +10,8 @@ from sensor_msgs.msg import Image
 from std_msgs.msg import Float64MultiArray, Float64
 from cv_bridge import CvBridge, CvBridgeError
 
+from ObjectDetection import ObjectDetection
+
 
 class image_converter:
 
@@ -25,6 +27,12 @@ class image_converter:
     self.bridge = CvBridge()
     # iterator to capture images
     self.iterator = 0
+    #
+    self.od = ObjectDetection()
+    # targets
+    self.targets_pub = rospy.Publisher("targets_pos",Float64MultiArray, queue_size=10)
+    # initialize target array
+    self.targets = Float64MultiArray()
 
 
   # Recieve data from camera 1, process it, and publish
@@ -36,14 +44,32 @@ class image_converter:
     except CvBridgeError as e:
       print(e)
     # Uncomment if you want to save the image
-    if self.iterator % 50 == 0:
-        print(self.iterator)
-        cv2.imwrite('image_1_'+str(self.iterator/50)+'.png', self.cv_image1)
-    im1=cv2.imshow('window1', self.cv_image1)
-    cv2.waitKey(1)
+    #if self.iterator % 50 == 0:
+    #    print(self.iterator)
+    #    cv2.imwrite('image_1_'+str(self.iterator/50)+'.png', self.cv_image1)
+    #im1=cv2.imshow('window1', self.cv_image1)
+    #cv2.waitKey(1)
+
+    img = self.od.filter_orange(self.cv_image1)
+    img = self.od.opening(img, kernel_size=3)
+    img = self.od.dilate(img, 3)
+    boundries, contours = self.od.find_boundries(img)
+
+    try:
+        cx0, cy0 = self.od.get_center(img, boundries[0])
+        cx1, cy1 = self.od.get_center(img, boundries[1])
+        #obj = od.get_object(img2, rects[j])
+        a = np.array([cx0, cy0, cx1, cy1])
+        self.targets.data = a
+    except:
+        self.targets.data = np.array([0, 0, 0, 0])
+
+    #rects, cnts = od.find_boundries(img2)
+
     # Publish the results
     try:
       self.image_pub1.publish(self.bridge.cv2_to_imgmsg(self.cv_image1, "bgr8"))
+      self.targets_pub.publish(self.targets)
     except CvBridgeError as e:
       print(e)
 
