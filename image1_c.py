@@ -34,6 +34,8 @@ class image_converter:
     # initialize target array
     self.targets = Float64MultiArray()
 
+    self.cv_image1 = cv2.imread("image_1_1.png", 1)
+
 
   # Recieve data from camera 1, process it, and publish
   def callback1(self,data):
@@ -50,7 +52,7 @@ class image_converter:
     #im1=cv2.imshow('window1', self.cv_image1)
     #cv2.waitKey(1)
 
-    img = self.od.filter_orange(self.cv_image1)
+    img = self.od.filter_colour(self.cv_image1, "orange")
     img = self.od.opening(img, kernel_size=3)
     img = self.od.dilate(img, 3)
     boundries, contours = self.od.find_boundries(img)

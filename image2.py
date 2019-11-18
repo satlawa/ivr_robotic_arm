@@ -11,7 +11,7 @@ from std_msgs.msg import Float64MultiArray, Float64
 from cv_bridge import CvBridge, CvBridgeError
 
 
-class image_converter:
+class image_converter2:
 
   # Defines publisher and subscriber
   def __init__(self):
@@ -26,6 +26,8 @@ class image_converter:
     # iterator to capture images
     self.iterator = 0
 
+    self.cv_image2 = cv2.imread("image_2_1.png", 1)
+
 
   # Recieve data, process it, and publish
   def callback2(self,data):
@@ -36,9 +38,9 @@ class image_converter:
     except CvBridgeError as e:
       print(e)
     # Uncomment if you want to save the images
-    if self.iterator % 50 == 0:
-        print(self.iterator)
-        cv2.imwrite('image_2_'+str(self.iterator/50)+'.png', self.cv_image2)
+    #if self.iterator % 50 == 0:
+    #    print(self.iterator)
+    #    cv2.imwrite('image_2_'+str(self.iterator/50)+'.png', self.cv_image2)
     im2=cv2.imshow('window2', self.cv_image2)
     cv2.waitKey(1)
 
@@ -50,7 +52,7 @@ class image_converter:
 
 # call the class
 def main(args):
-  ic = image_converter()
+  ic = image_converter2()
   try:
     rospy.spin()
   except KeyboardInterrupt:
