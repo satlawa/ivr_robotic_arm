@@ -43,7 +43,15 @@ class ObjectDetection(object):
         boundries = [cv2.boundingRect(ctr) for ctr in contours]
         return boundries, contours
 
-    def get_center(self, img, boundries):
+    def get_center_joint(self, img):
+        # compute moments
+        M = cv2.moments(img)
+        # calculate x,y coordinate of center
+        cx = int(M["m10"] / M["m00"])
+        cy = int(M["m01"] / M["m00"])
+        return cx, cy
+
+    def get_center_target(self, img, boundries):
         # cut object out of image
         obj = img[boundries[1]-1:boundries[1]+boundries[3]+1, boundries[0]-1:boundries[0]+boundries[2]+1]
         # compute moments

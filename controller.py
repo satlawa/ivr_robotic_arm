@@ -17,9 +17,13 @@ class controller:
         self.svm.train('svm.xml')
 
     def detect_joints(self, img):
-        mask = self.ic.filter_color(img, "blue")
-        mask = self.od.dilate(img=mask, kernel_size=5)
-        return mask
+        joints = []
+        for colour in ["red", "green", "blue", "yellow"]
+            mask = self.ic.filter_color(img, colour)
+            mask = self.od.dilate(img=mask, kernel_size=5)
+            cx, cy = self.od.get_center_joint(mask)
+            joints.append([cx, cy])
+        return joints
 
     def detect_target(self, img):
         img = self.od.filter_colour(img, "orange")
@@ -35,59 +39,54 @@ def main(args):
 
     while True:
         if con.ic1.iterator > i1:
-            print("camera 1")
-            print(con.ic1.iterator)
             i1 = con.ic1.iterator
-
             # get image1
             img = con.ic1.cv_image1
             # detect targets
             img, boundries, contours = con.detect_target(img)
+
             try:
                 # get center
-                cx0, cy0 = con.od.get_center(img, boundries[0])
+                cx0, cy0 = con.od.get_center_target(img, boundries[0])
                 obj0 = con.od.get_object(img, boundries[0])
                 prediction0 = con.svm.classify(obj0)
-                print(prediction0[1][0], cx0, cy0)
+                print("camera1", con.ic1.iterator, prediction0[1][0], cx0, cy0)
                 #print(prediction, cx, cy)
             except:
                 #self.targets.data = np.array([0, 0, 0, 0])
                 print("x x x")
 
             try:
-                cx1, cy1 = con.od.get_center(img, boundries[1])
+                cx1, cy1 = con.od.get_center_target(img, boundries[1])
                 obj1 = con.od.get_object(img, boundries[1])
                 prediction1 = con.svm.classify(obj1)
-                print(prediction1[1][0], cx1, cy1)
+                print("camera1", con.ic1.iterator, prediction1[1][0], cx1, cy1)
             except:
                 #self.targets.data = np.array([0, 0, 0, 0])
                 print("x x x")
 
         if con.ic2.iterator > i2:
-            print("camera 2")
-            print(con.ic2.iterator)
             i2 = con.ic2.iterator
-
             # get image1
             img = con.ic2.cv_image2
             # detect targets
             img, boundries, contours = con.detect_target(img)
             try:
                 # get center
-                cx0, cy0 = con.od.get_center(img, boundries[0])
+                cx0, cy0 = con.od.get_center_target(img, boundries[0])
                 obj0 = con.od.get_object(img, boundries[0])
                 prediction0 = con.svm.classify(obj0)
-                print(prediction0[1][0], cx0, cy0)
+                print("camera2", con.ic1.iterator, prediction0[1][0], cx0, cy0)
                 #print(prediction, cx, cy)
             except:
                 #self.targets.data = np.array([0, 0, 0, 0])
                 print("x x x")
 
             try:
-                cx1, cy1 = con.od.get_center(img, boundries[1])
+                cx1, cy1 = con.od.get_center_target(img, boundries[1])
                 obj1 = con.od.get_object(img, boundries[1])
                 prediction1 = con.svm.classify(obj1)
-                print(prediction1[1][0], cx1, cy1)
+                print("camera2", con.ic1.iterator, prediction1[1][0], cx1, cy1)
             except:
                 #self.targets.data = np.array([0, 0, 0, 0])
                 print("x x x")
