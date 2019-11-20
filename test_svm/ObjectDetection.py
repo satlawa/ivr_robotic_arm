@@ -6,9 +6,25 @@ import matplotlib.pyplot as plt
 
 class ObjectDetection(object):
 
-    def filter_orange(self, img):
-        # filter orange color
-        mask = cv2.inRange(img, (75, 100, 120), (110, 190, 215))
+    #def __init__(self, img):
+    #    self.img = img
+
+    def filter_colour(self, img, colour):
+        if colour == "orange":
+            # filter orange colour
+            mask = cv2.inRange(img, (75, 100, 120), (110, 190, 215))
+        elif colour == "red":
+            # filter red colour
+            mask = cv2.inRange(img, (0, 0, 100), (0, 0, 255))
+        elif colour == "green":
+            # filter green colour
+            mask = cv2.inRange(img, (0, 100, 0), (0, 255, 0))
+        elif colour == "blue":
+            # filter blue colour
+            mask = cv2.inRange(img, (100, 0, 0), (255, 0, 0))
+        elif colour == "yellow":
+            # filter blue colour
+            mask = cv2.inRange(img, (0, 100, 100), (0, 255, 255))
         return mask
 
     def dilate(self, img, kernel_size=3):
@@ -30,22 +46,30 @@ class ObjectDetection(object):
         boundries = [cv2.boundingRect(ctr) for ctr in contours]
         return boundries, contours
 
-    def get_center(self, img, boundries):
+    def get_center_joint(self, img):
+        # compute moments
+        M = cv2.moments(img)
+        # calculate x,y coordinate of center
+        cx = int(M["m10"] / M["m00"])
+        cy = int(M["m01"] / M["m00"])
+        return cx, cy
+
+    def get_center_target(self, img, boundries):
         # cut object out of image
         obj = img[boundries[1]-1:boundries[1]+boundries[3]+1, boundries[0]-1:boundries[0]+boundries[2]+1]
         # compute moments
         M = cv2.moments(obj)
         # calculate x,y coordinate of center
-        cX = int(M["m10"] / M["m00"]) + boundries[0]
-        cY = int(M["m01"] / M["m00"]) + boundries[1]
-        return cX, cY
+        cx = int(M["m10"] / M["m00"]) + boundries[0]
+        cy = int(M["m01"] / M["m00"]) + boundries[1]
+        return cx, cy
 
     def get_object(self, img, rect):
         '''
             rectangular region -> cut -> delete other objets from image -> resize
             in:     img           (grayscale image)
                     rects           (coordinates of detected objects)
-            out:    roi             (object image)
+            out:    obj             (object image)
         '''
         # Draw the rectangles
         #cv2.rectangle(im, (rect[0], rect[1]), (rect[0] + rect[2], rect[1] + rect[3]), (0, 255, 0), 3)
@@ -69,12 +93,12 @@ class ObjectDetection(object):
             x_ax = int((roi_2.shape[1] - roi_1.shape[1])/2) if roi_2.shape[1] > roi_1.shape[1] else 0
 
             # make borders around element
-            roi = cv2.copyMakeBorder(roi_1, y_ax, y_ax, x_ax, x_ax, cv2.BORDER_CONSTANT, value=BLACK)
+            obj = cv2.copyMakeBorder(roi_1, y_ax, y_ax, x_ax, x_ax, cv2.BORDER_CONSTANT, value=BLACK)
             #print(roi.shape)
 
-            roi = cv2.resize(roi, (32, 32))#, interpolation=cv2.INTER_AREA)
-            roi = cv2.dilate(roi, (3, 3))
+            obj = cv2.resize(obj, (32, 32))#, interpolation=cv2.INTER_AREA)
+            obj = cv2.dilate(obj, (3, 3))
         else:
-            roi = np.zeros((32,32))
+            obj = np.zeros((32,32))
 
-        return(roi)
+        return obj
