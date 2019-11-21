@@ -13,6 +13,7 @@ import message_filters
 
 from ObjectDetection import ObjectDetection
 from SvmClassifier import classifer
+from Coordinates import Coordinates
 
 
 class image2target:
@@ -40,19 +41,23 @@ class image2target:
         self.iterator = 0
 
         # use class for object detection
+        self.coord = Coordinates()
         self.od = ObjectDetection()
         self.svm = classifer([['obj0', 8], ['obj1', 8]])
         self.svm.addTrainSamples('images_train')
         self.svm.train('svm.xml')
 
+        self.pix2meter0 = 0
+        self.pix2meter1 = 0
+
     def detect_joints(self, img):
         joints = []
         for colour in ["red", "green", "blue", "yellow"]:
-            mask = self.od.filter_color(img, colour)
+            mask = self.od.filter_colour(img, colour)
             mask = self.od.dilate(img=mask, kernel_size=5)
             cx, cy = self.od.get_center_joint(mask)
             joints.append([cx, cy])
-        return joints
+        return np.array(joints)
 
     def detect_target(self, img):
         img = self.od.filter_colour(img, "orange")
@@ -60,6 +65,17 @@ class image2target:
         img = self.od.dilate(img, 3)
         boundries, contours = self.od.find_boundries(img)
         return img, boundries, contours
+
+    def set_pix2meter(self, joints0, joints1):
+        # set conversion factor (pixels to meters) between green and blue joints (3 meters)
+        self.pix2meter0 = self.coord.calc_pixel_to_meter_2D(joints0[1], joints0[2], 3)
+        self.pix2meter1 = self.coord.calc_pixel_to_meter_2D(joints1[1], joints1[2], 3)
+
+    def merge_coordinates(self, joints0, joints1):
+        coordinates = []
+        for i in range(joints0.shape[0]):
+            coordinates.append(self.coord.merge_coordinates_2D_to_3D(joints0[i], joints1[i]))
+        return np.array(coordinates)
 
 
     # Recieve data from camera 1, process it, and publish
@@ -80,6 +96,29 @@ class image2target:
         #im2=cv2.imshow('window2', self.cv_image1)
         #cv2.waitKey(1)
 
+        ##############
+        ### joints ###
+        ##############
+
+        # detect joints from camera1 ans camera2
+        joints0 = self.detect_joints(self.cv_image0)
+        joints1 = self.detect_joints(self.cv_image1)
+
+        # set conversion factor between green and blue joints
+        self.set_pix2meter(joints0, joints1)
+
+        # merge pixel coordinates from both images to coordinates x,y,z
+        coordinates = self.merge_coordinates(joints0, joints1)
+
+        #joints0 = joints0 * self.pix2meter0
+        #joints0 = joints0.round(0)
+        print(coordinates[0], coordinates[1], coordinates[2], coordinates[3])
+
+        ###############
+        ### targets ###
+        ###############
+
+        # get filterd & thresholded image, boundries, contours of target objects
         img, boundries, contours = self.detect_target(self.cv_image0)
 
         try:
@@ -102,7 +141,7 @@ class image2target:
             #self.targets.data = np.array([0, 0, 0, 0])
             data1 = [0, 0, 0]
 
-        print("target 1 ", data0, " target 2 ", data1)
+        #print("target 1 ", data0, " target 2 ", data1)
 
 
         # set variables for ublishing
