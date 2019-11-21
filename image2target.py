@@ -110,9 +110,12 @@ class image2target:
         # merge pixel coordinates from both images to coordinates x,y,z
         coordinates = self.merge_coordinates(joints0, joints1)
 
+        # calculate angles
+        #print(self.coord.calc_angles_joints_3D(coordinates[1], coordinates[2]))
+
         #joints0 = joints0 * self.pix2meter0
         #joints0 = joints0.round(0)
-        print(coordinates[0], coordinates[1], coordinates[2], coordinates[3])
+        #print(coordinates[0], coordinates[1], coordinates[2], coordinates[3])
 
         ###############
         ### targets ###
@@ -141,7 +144,7 @@ class image2target:
             #self.targets.data = np.array([0, 0, 0, 0])
             data1 = [0, 0, 0]
 
-        #print("target 1 ", data0, " target 2 ", data1)
+        print("target 1 ", data0, " target 2 ", data1)
 
 
         # set variables for ublishing
